@@ -1,5 +1,5 @@
 # PlantAId
-A plant disease detection website for farmers, using Machine Learning.
+A plant disease detection website for farmers, using Machine Learning. (Frontend in Progress....)
 This project trains a deep learning model using TensorFlow and Keras. It includes training, validation, and performance evaluation.
 Dataset link - https://www.kaggle.com/datasets/vipoooool/new-plant-diseases-dataset.
 Only the tomato dataset is used from this whole this data.
