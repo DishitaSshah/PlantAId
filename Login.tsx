@@ -17,10 +17,11 @@ export function Login() {
 
     try {
       await signIn(email, password);
-      toast.success('Successfully logged in!');
+      toast.success('Successfully Logged in!');
       navigate('/detect');
-    } 
-    finally {
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to sign in. Please check your credentials.');
+    } finally {
       setIsLoading(false);
     }
   };
