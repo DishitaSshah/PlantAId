@@ -12,6 +12,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Load Supabase credentials from environment
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -30,54 +31,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function initializeAuth() {
+    let unsubscribe: () => void;
+
+    const initializeAuth = async () => {
       try {
-        // Check active sessions and sets the user
+        // Get current session
         const { data: { session } } = await supabase.auth.getSession();
         setUser(session?.user ?? null);
-        
-        // Listen for changes on auth state
+
+        // Listen to auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
           setUser(session?.user ?? null);
         });
 
-        return () => subscription.unsubscribe();
+        unsubscribe = () => subscription.unsubscribe();
       } catch (error) {
         console.error('Auth initialization error:', error);
         toast.error('Failed to initialize authentication');
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
     initializeAuth();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    if (error) throw error;
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+      toast.error(error.message);
+      throw error;
+    } else {
+      toast.success('Signup successful. Please verify your email.');
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      toast.error(error.message);
+      throw error;
+    }
   };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      toast.error(error.message);
+      throw error;
+    } else {
+      toast.success('Signed out successfully');
+    }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-green-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-green-500"></div>
       </div>
     );
   }
